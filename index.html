@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+    <meta charset="UTF-8">
+    <title>TITLE NUMBER GENERATOR (A7)</title>
+    <link rel="stylesheet" href="./style.css">
+
+  </head>
+    
+  <body>
+  <div class="container">
+  <h1>Title Number Generator</h1>
+  
+  <form id="calculator-form">
+    <div class="form-section">
+      <h2>Step 1: Upload JPPH Excel</h2>
+      <label for="excel-upload" class="upload-label upload-drop-zone">
+        Drag & Drop or Upload JPPH Excel (.xlsx)
+      </label>
+      <input type="file" id="excel-upload" accept="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel" class="hidden">
+      <p id="upload-processing-msg" class="hidden">
+        Processing file...
+      </p>
+    </div>
+    
+    <p class="instructions">
+      ... or manually enter data below.
+      <br>The tool will auto-filter odd/even data to match your target and attempt to auto-correct for any outliers.
+    </p>
+
+    <div class="form-section">
+      <h2>Step 2: Define the Pattern</h2>
+      
+      <div id="type-selector-container" class="form-section hidden">
+        <label>Filter by Title Type:</label>
+        <div id="type-selector-checkboxes">
+          </div>
+      </div>
+      
+      <div id="data-point-container">
+        </div>
+      
+      <button type="button" id="add-point-btn">+ Add Data Point</button>
+    </div>
+
+    <div class="form-section">
+      <h2>Step 3: Find Your Title Number</h2>
+      
+      <label for="target-house">Target House No.</label>
+      <input type="number" id="target-house" placeholder="e.g., 12" required>
+      
+      <button type="submit">Calculate Title Number</button>
+    </div>
+  </form>
+
+  <div id="result-container" class="hidden">
+    
+    <div id="analysis-box">
+      <span id="analysis-level"></span>
+      <p id="analysis-text"></p>
+    </div>
+
+    <h2>House Number: <span class="target-house-display">...</span><br>Calculated Title Number:</h2>
+    <p id="result-text"></p>
+    <p id="result-title-type"></p> <div id="formula-details">
+      <h3>Analysis</h3>
+      <span id="formula-text"></span>
+    </div>
+  </div>
+  
+  <div id="error-container" class="hidden">
+    <p id="error-text"></p>
+  </div>
+  
+  <footer class="footer">
+    <p class="footer-credit">By KS CHEN (REN 74181) – Reapfield</p>
+    <p class="footer-disclaimer">
+      This Title Generator is in Beta testing stage. If you find any inaccuracies, please contact us at +6 014-636 8436. Happy closing!
+    </p>
+  </footer>
+
+</div>
+    <script  src="./script.js"></script>
+
+  </body>
+  
+</html>

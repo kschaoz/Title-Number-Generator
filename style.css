@@ -1,0 +1,443 @@
+/* --- Dark Theme --- */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap');
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  background-color: #1a1a1a;
+  color: #f0f0f0;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 20px;
+  min-height: 100vh;
+}
+
+.container {
+  width: 100%;
+  max-width: 600px;
+  background-color: #2a2a2a;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+  padding: 2rem 2.5rem;
+}
+
+h1 {
+  text-align: center;
+  color: #ffffff;
+  margin-top: 0;
+  margin-bottom: 0.5rem;
+}
+
+h2 {
+  border-bottom: 2px solid #444;
+  padding-bottom: 8px;
+  margin-top: 1.5rem;
+  margin-bottom: 1rem;
+  color: #fdd835; /* Yellow */
+}
+
+.instructions {
+  text-align: center;
+  font-size: 0.95rem;
+  color: #ccc;
+  margin-bottom: 2rem;
+  background-color: #333;
+  padding: 1rem;
+  border-radius: 8px;
+  line-height: 1.5;
+  border: 1px solid #444;
+}
+
+.form-section {
+  margin-bottom: 2rem;
+}
+
+/* Input group layout */
+.input-group {
+  display: flex;
+  gap: 0.75rem; /* Slightly smaller gap */
+  margin-bottom: 1rem;
+  align-items: flex-end;
+}
+
+.input-group > div {
+  flex: 1; /* All 3 input divs will share space */
+}
+/* NEW: Hide row via JS */
+.input-group.hidden {
+  display: none;
+}
+
+label {
+  display: block;
+  font-weight: 500;
+  margin-bottom: 6px;
+  font-size: 0.9rem;
+  color: #ccc;
+  white-space: nowrap; /* Prevent labels from wrapping */
+}
+
+/* Added text input styles */
+input[type="number"],
+input[type="text"] {
+  width: 100%;
+  padding: 12px;
+  font-size: 1rem;
+  border: 1px solid #555;
+  background-color: #3b3b3b;
+  color: #ffffff;
+  border-radius: 6px;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  height: 47px; /* Match input height */
+}
+
+/* Added text input focus styles */
+input[type="number"]:focus,
+input[type="text"]:focus {
+  border-color: #fdd835;
+  box-shadow: 0 0 0 3px rgba(253, 216, 53, 0.15);
+  outline: none;
+}
+
+/* Read-only style for Title Type */
+input[type="text"][readonly] {
+  background-color: #2a2a2a; /* Match container bg */
+  color: #888;
+  border-color: #444;
+}
+
+
+input[type=number]::-webkit-inner-spin-button, 
+input[type=number]::-webkit-outer-spin-button {
+  filter: invert(1);
+}
+
+button[type="submit"] {
+  width: 100%;
+  padding: 14px;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #000000;
+  background-color: #fdd835; /* Yellow */
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  margin-top: 1rem;
+}
+
+button[type="submit"]:hover {
+  background-color: #ffeb3b; /* Lighter yellow */
+}
+
+#add-point-btn {
+  width: 100%;
+  padding: 10px;
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: #fdd835;
+  background-color: transparent;
+  border: 1px dashed #fdd835;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  margin-top: 1rem;
+}
+
+#add-point-btn:hover {
+  background-color: rgba(253, 216, 53, 0.1);
+}
+
+#add-point-btn:disabled {
+  background-color: #333;
+  color: #777;
+  cursor: not-allowed;
+  border-color: #555;
+}
+
+.remove-btn {
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  font-size: 1.5rem;
+  font-weight: 400;
+  line-height: 44px;
+  color: #f48a7d;
+  background-color: rgba(220, 53, 69, 0.1);
+  border: 1px solid #dc3545;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.remove-btn:hover {
+  background-color: #dc3545;
+  color: #fff;
+}
+
+.remove-btn:disabled {
+  background-color: #333;
+  color: #777;
+  border-color: #555;
+  cursor: not-allowed;
+}
+
+/* --- Excel Upload Styles --- */
+.hidden {
+  display: none;
+}
+
+.upload-label {
+  display: block;
+  width: 100%;
+  padding: 12px;
+  font-size: 1rem;
+  font-weight: 500;
+  color: #000;
+  background-color: #28a745; /* Green */
+  border: 1px solid #1c7430;
+  border-radius: 6px;
+  cursor: pointer;
+  text-align: center;
+  transition: background-color 0.2s, border-color 0.2s;
+}
+
+.upload-label:hover {
+  background-color: #34c052;
+}
+
+/* Drag and Drop styles */
+.upload-drop-zone {
+  border: 2px dashed #444;
+  background-color: #2a2a2a;
+  color: #eee;
+}
+.upload-drop-zone:hover {
+  background-color: #333;
+}
+.upload-drop-zone.dragover {
+  border-color: #fdd835;
+  background-color: #333;
+  color: #fdd835;
+}
+
+
+#upload-processing-msg {
+  text-align: center;
+  color: #fdd835;
+  font-weight: 500;
+  margin-top: 1rem;
+}
+
+
+/* Result Container */
+#result-container {
+  text-align: center;
+  background-color: #333;
+  padding: 1.5rem;
+  border-radius: 8px;
+  margin-top: 2rem;
+  border: 1px solid #444;
+}
+
+#result-container h2 {
+  margin-top: 0;
+  margin-bottom: 0.5rem;
+  color: #eee;
+  border: none;
+}
+#result-container h2 span.target-house-display {
+  font-size: 1.5rem;
+  font-weight: 700;
+  display: block;
+  margin-bottom: 0.5rem;
+  color: #ccc;
+}
+
+
+#result-text {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #eee;
+  margin: 0; /* Removed bottom margin */
+}
+
+/* Result Title Type Style */
+#result-title-type {
+  font-size: 1.1rem;
+  font-weight: 500;
+  color: #aaa;
+  margin: 0.25rem 0 1rem 0; /* Add space around it */
+  font-style: italic;
+}
+
+
+/* Analysis Box Styles */
+#analysis-box {
+  padding: 1rem;
+  border-radius: 8px;
+  margin-bottom: 1.5rem;
+  border: 1px solid;
+  text-align: left;
+}
+
+#analysis-level {
+  display: block;
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin-bottom: 0.25rem;
+}
+
+#analysis-text {
+  font-size: 0.9rem;
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* Success & Info State (Auto-Correct) */
+#result-container.success #analysis-box,
+#result-container.info #analysis-box {
+  background-color: #1c3d24;
+  border-color: #28a745;
+  color: #a6d9b1;
+}
+#result-container.success #result-text,
+#result-container.info #result-text,
+#result-container.success #result-title-type,
+#result-container.info #result-title-type {
+  color: #73d289; /* Bright Green */
+}
+#result-container.success h2 span.target-house-display,
+#result-container.info h2 span.target-house-display {
+  color: #73d289; /* Bright Green */
+}
+
+/* Warning State */
+#result-container.warning #analysis-box {
+  background-color: #3c2a2b;
+  border-color: #dc3545;
+  color: #f48a7d;
+}
+#result-container.warning #result-text,
+#result-container.warning #result-title-type {
+  color: #f48a7d; /* Bright Red */
+}
+#result-container.warning h2 span.target-house-display {
+  color: #f48a7d; /* Bright Red */
+}
+
+
+/* Formula Details */
+#formula-details {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px dashed #555;
+  font-family: 'Courier New', Courier, monospace;
+  color: #aaa;
+  font-size: 0.9rem;
+  text-align: left;
+}
+
+#formula-details h3 {
+  font-family: 'Inter', sans-serif;
+  color: #ccc;
+  margin-top: 0;
+  font-weight: 700;
+  text-align: center;
+}
+
+/* Error Container */
+#error-container {
+  text-align: center;
+  background-color: #3c2a2b;
+  padding: 1rem;
+  border-radius: 8px;
+  margin-top: 2rem;
+  border: 1px solid #dc3545;
+}
+
+#error-text {
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: #f48a7d;
+  margin: 0;
+}
+
+/* Footer Styles */
+.footer {
+  text-align: center;
+  margin-top: 2.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #444;
+}
+
+.footer-credit {
+  font-size: 1rem;
+  font-weight: 500;
+  color: #ccc;
+  margin: 0 0 0.5rem 0;
+}
+
+.footer-disclaimer {
+  font-size: 0.8rem;
+  color: #888;
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* --- NEW: In-Page Type Selector Styles --- */
+#type-selector-container {
+  margin-bottom: 2rem;
+  border-bottom: 1px dashed #555;
+  padding-bottom: 1.5rem;
+}
+#type-selector-container label {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #fdd835;
+  margin-bottom: 1rem;
+}
+#type-selector-checkboxes {
+  display: flex;
+  flex-wrap: wrap; /* Allow buttons to wrap to next line */
+  gap: 1rem;
+}
+.checkbox-filter-group {
+  display: flex;
+  align-items: center;
+  background-color: #3b3b3b;
+  border: 1px solid #555;
+  border-radius: 6px;
+  padding: 0 10px 0 10px;
+}
+.checkbox-filter-group input[type="checkbox"] {
+  width: 1.15em;
+  height: 1.15em;
+  margin-right: 0.75rem;
+  cursor: pointer;
+  accent-color: #fdd835;
+}
+.checkbox-filter-group label {
+  font-weight: 500;
+  color: #eee;
+  white-space: nowrap;
+  margin-bottom: 0;
+  padding: 10px 0;
+  cursor: pointer;
+}
+/* Style for the "All" button */
+.checkbox-filter-group.all-filter {
+  background-color: #1c3d24;
+  border-color: #28a745;
+}
+.checkbox-filter-group.all-filter label {
+  color: #73d289;
+}
+.checkbox-filter-group.all-filter input[type="checkbox"] {
+  accent-color: #73d289;
+}
