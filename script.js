@@ -72,6 +72,10 @@ function initializeApp() {
   const typeSelectorContainer = document.getElementById("type-selector-container");
   const typeSelectorCheckboxes = document.getElementById("type-selector-checkboxes");
   
+  // Sort Elements
+  const sortContainer = document.getElementById("sort-container");
+  const sortSelect = document.getElementById("sort-select");
+  
   // --- 1. Excel Upload Logic ---
   
   dropZone.addEventListener("dragover", (e) => {
@@ -106,7 +110,8 @@ function initializeApp() {
     uploadProcessingMsg.classList.remove("hidden");
     errorContainer.classList.add("hidden");
     typeSelectorContainer.classList.add("hidden");
-    clearDataPoints();
+    sortContainer.classList.add("hidden"); // Hide sorter
+    clearDataPoints(true); // Full clear on new upload
     
     const reader = new FileReader();
     
@@ -155,25 +160,35 @@ function initializeApp() {
     }
     
     const houseLine = data[10] || []; // Row 11
+    const dateLine = data[22] || [];  // Row 23
     const titleLine = data[25] || []; // Row 26
     
     allUploadedData = []; 
-    normalizedTypeMap.clear(); // Clear the old map
+    normalizedTypeMap.clear();
     
     for (let i = 3; i < houseLine.length; i++) {
       try {
         const houseCell = String(houseLine[i] || "");
+        const dateCell = String(dateLine[i] || "");
         const titleCell = String(titleLine[i] || "");
         
-        if (houseCell && titleCell) {
+        if (houseCell && titleCell && dateCell) {
           const houseNum = parseHouseNumber(houseCell);
           const indication = parseTitleIndication(titleCell); 
           const titleNum = parseTitleNumber(titleCell);
+          const dateObj = parseExcelDate(dateCell);
           
           if (houseNum && titleNum) {
-            allUploadedData.push({ house: houseNum, title: titleNum, type: indication });
+            allUploadedData.push({ 
+              index: i,
+              house: houseNum, 
+              title: titleNum, 
+              type: indication, 
+              date: dateObj,
+              houseNum: parseInt(houseNum), 
+              titleNum: parseInt(titleNum) 
+            });
             
-            // --- NEW Normalized Map Logic ---
             if (indication) { 
               const normalized = normalizeType(indication);
               if (!normalizedTypeMap.has(normalized)) {
@@ -187,17 +202,17 @@ function initializeApp() {
       }
     }
     
-    // Always populate the data points
-    populateDataPoints(allUploadedData);
-    
     // Only show the selector if there are types
     if (normalizedTypeMap.size > 0) {
-      populateTypeSelector();
+      populateTypeSelector(); // <-- This creates the #filter-all checkbox
+      sortContainer.classList.remove('hidden'); // Show sorter
     }
+    
+    // Now it's safe to populate the data
+    populateDataPoints(allUploadedData);
   }
   
   /**
-   * *** UPDATED ***
    * Populates the checkbox filter UI
    */
   function populateTypeSelector() {
@@ -216,7 +231,6 @@ function initializeApp() {
     for (const [normalized, original] of normalizedTypeMap.entries()) {
       const div = document.createElement('div');
       div.className = 'checkbox-filter-group';
-      // Use original for label, normalized for id/value
       div.innerHTML = `
         <input type="checkbox" id="filter-${normalized}" value="${normalized}" checked>
         <label for="filter-${normalized}">${original}</label>
@@ -233,7 +247,6 @@ function initializeApp() {
   }
   
   /**
-   * *** NEW ***
    * Handles click on any filter checkbox
    */
   function onFilterChange(e) {
@@ -241,10 +254,8 @@ function initializeApp() {
     const typeCheckboxes = typeSelectorCheckboxes.querySelectorAll('input:not(#filter-all)');
 
     if (e.target.id === 'filter-all') {
-      // If "All" is clicked, set all others to match it
       typeCheckboxes.forEach(cb => cb.checked = allCheckbox.checked);
     } else {
-      // If a specific type is clicked, check if all are checked
       const allChecked = Array.from(typeCheckboxes).every(cb => cb.checked);
       allCheckbox.checked = allChecked;
     }
@@ -253,22 +264,23 @@ function initializeApp() {
   }
   
   /**
-   * *** NEW ***
    * Hides or shows data points based on the active filters
    */
   function filterDataPoints() {
-    // 1. Get all active *normalized* filter types
+    const allCheckbox = document.getElementById('filter-all');
+    if (!allCheckbox) {
+      return; 
+    }
+    
     const activeFilters = new Set();
     const typeCheckboxes = typeSelectorCheckboxes.querySelectorAll('input:not(#filter-all):checked');
     typeCheckboxes.forEach(cb => activeFilters.add(cb.value));
 
-    // 2. Filter the visible rows
     const allRows = dataPointContainer.querySelectorAll('.input-group');
     allRows.forEach(row => {
       const rowTypeNormalized = row.dataset.titleType;
       
-      // Show if "All" is checked OR if the row's type is in the active set
-      if (document.getElementById('filter-all').checked || activeFilters.has(rowTypeNormalized)) {
+      if (allCheckbox.checked || activeFilters.has(rowTypeNormalized)) {
         row.classList.remove('hidden');
       } else {
         row.classList.add('hidden');
@@ -280,7 +292,7 @@ function initializeApp() {
    * Takes an array of data objects and populates the UI
    */
   function populateDataPoints(dataToPopulate) {
-    clearDataPoints(); // Clear any manual entries
+    clearDataPoints(false); // Clear rows but NOT filters
     
     let pointsFound = 0;
     dataToPopulate.forEach(item => {
@@ -289,16 +301,23 @@ function initializeApp() {
     });
     
     if (pointsFound < 2) {
-      showError(`Found ${pointsFound} valid data pairs. Not enough data to calculate a pattern.`);
+      if(allUploadedData.length > 0) {
+        showError(`Found ${pointsFound} valid data pairs. Not enough data to calculate a pattern.`);
+      }
+      // Add blank rows for manual entry
       createBlankDataPoint();
       createBlankDataPoint();
     }
+    
+    // Re-apply filters after populating
+    filterDataPoints();
   }
 
   
   /** Smart Parsers (Updated) */
   function normalizeType(text) {
-    return text.toLowerCase().replace(/\s+/g, '');
+    // Ignores case and all spaces
+    return text.toUpperCase().replace(/\s/g, '');
   }
   
   function parseHouseNumber(cellText) {
@@ -313,41 +332,91 @@ function initializeApp() {
     return houseNum.toString();
   }
   
+  /**
+   * *** THIS IS THE FIX (Bug 1) ***
+   * Smart parser for Title Numbers.
+   * Finds the LAST number with 1 OR MORE digits.
+   */
   function parseTitleNumber(cellText) {
-    const numMatches = cellText.match(/(\d{5,})/g);
-    if (!numMatches) return null;
+    // Find all sequences of 1 or more digits
+    const numMatches = cellText.match(/\d+/g); 
+    
+    if (!numMatches) {
+      return null; // No number found
+    }
+    
+    // Return the *last* one found in the string
     return numMatches[numMatches.length - 1];
   }
   
+  /**
+   * *** THIS IS THE FIX (Bug 2) ***
+   * Smart parser for Title Indication.
+   * Grabs all text before the LAST number.
+   */
   function parseTitleIndication(cellText) {
-    const numMatches = cellText.match(/(\d{5,})/g);
-    if (!numMatches) return "";
+    const numMatches = cellText.match(/\d+/g);
+    if (!numMatches) {
+      return ""; // No number, so no indication
+    }
+    
     const lastNum = numMatches[numMatches.length - 1];
     const lastNumIndex = cellText.lastIndexOf(lastNum);
+    
+    // The indication is everything before it
     return cellText.substring(0, lastNumIndex).trim();
+  }
+  
+  function parseExcelDate(text) {
+    if (!text) return null;
+    const parts = text.split(' ');
+    if (parts.length < 3) return null; 
+    
+    const day = parts[0];
+    const month = parts[1];
+    const year = parts[2];
+    
+    const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    const monthIndex = months.findIndex(m => m.toLowerCase() === month.toLowerCase());
+    if (monthIndex === -1) return null;
+    
+    return new Date(year, monthIndex, day);
   }
   
 
   
   // --- 2. Dynamic Add/Remove Logic ---
 
-  function clearDataPoints() {
+  /**
+   * Removes all data points from the container
+   * @param {boolean} clearAll - If true, also clear filters/sorter
+   */
+  function clearDataPoints(clearAll = true) {
     dataPointContainer.innerHTML = '';
-    typeSelectorContainer.classList.add('hidden');
-    typeSelectorCheckboxes.innerHTML = ''; // Clear checkboxes too
+    if (clearAll) {
+      typeSelectorContainer.classList.add('hidden');
+      typeSelectorCheckboxes.innerHTML = '';
+      sortContainer.classList.add('hidden');
+      sortSelect.value = 'default';
+    }
   }
 
+  /**
+   * Creates a new blank data point row
+   */
   function createBlankDataPoint() {
     createDataPointWithValue('', '', '');
   }
   
+  /**
+   * Creates a new data point row and populates it with values
+   */
   function createDataPointWithValue(house, title, indication = '') {
     if (dataPointContainer.children.length >= MAX_POINTS) return;
     
     const newGroup = document.createElement('div');
     newGroup.className = 'input-group';
-    // *** Store the NORMALIZED type for filtering ***
-    newGroup.dataset.titleType = normalizeType(indication); 
+    newGroup.dataset.titleType = normalizeType(indication);
     
     newGroup.innerHTML = `
       <div>
@@ -371,7 +440,7 @@ function initializeApp() {
     const titleTypeInput = newGroup.querySelector('.title-type-input');
     const titleTypeWrapper = newGroup.querySelector('.title-type-wrapper');
     
-    titleTypeInput.value = indication; // Show the *original* text
+    titleTypeInput.value = indication;
     
     if (!indication) {
       titleTypeWrapper.classList.add("hidden");
@@ -381,6 +450,9 @@ function initializeApp() {
     updatePointUI();
   }
 
+  /**
+   * Updates labels (House No. 1, 2, 3...) and button states
+   */
   function updatePointUI() {
     const dataGroups = dataPointContainer.querySelectorAll('.input-group');
     const count = dataGroups.length;
@@ -408,12 +480,48 @@ function initializeApp() {
   
   dataPointContainer.addEventListener("click", (e) => {
     if (e.target && e.target.classList.contains('remove-btn')) {
-      e.target.closest('.input-group').remove();
+      const rowToRemove = e.target.closest('.input-group');
+      const allRows = Array.from(dataPointContainer.querySelectorAll('.input-group'));
+      const rowIndex = allRows.indexOf(rowToRemove);
+      
+      if(rowIndex > -1 && rowIndex < allUploadedData.length) {
+         allUploadedData.splice(rowIndex, 1);
+      }
+      rowToRemove.remove();
+      
       updatePointUI();
     }
   });
+  
+  sortSelect.addEventListener('change', (e) => {
+    sortData(e.target.value);
+  });
+  
+  /**
+   * Sorts the global data and re-renders the list
+   */
+  function sortData(sortBy) {
+    allUploadedData.sort((a, b) => {
+      switch(sortBy) {
+        case 'house':
+          return a.houseNum - b.houseNum;
+        case 'title':
+          return a.titleNum - b.titleNum;
+        case 'date_latest':
+          return (b.date || 0) - (a.date || 0);
+        case 'date_oldest':
+          return (a.date || 0) - (b.date || 0);
+        default: // 'default'
+          return a.index - b.index;
+      }
+    });
+    
+    // Re-render the entire list
+    populateDataPoints(allUploadedData);
+  }
 
-  // --- 3. Form Submission & Calculation Logic (UPDATED) ---
+
+  // --- 3. Form Submission & Calculation Logic ---
 
   form.addEventListener("submit", (e) => {
     e.preventDefault(); 
@@ -435,7 +543,6 @@ function initializeApp() {
     const filtered_x = []; 
     const filtered_y = []; 
     
-    // *** UPDATED: Get the active filter types ***
     const activeFilterLabels = [];
     const allCheckbox = document.getElementById('filter-all');
     let activeFilterDisplay = "N/A (Manual Mode)";
@@ -443,7 +550,6 @@ function initializeApp() {
     if (allCheckbox && !allCheckbox.checked) {
       const activeCheckboxes = typeSelectorCheckboxes.querySelectorAll('input:not(#filter-all):checked');
       activeCheckboxes.forEach(cb => {
-        // Use the original text from the map
         activeFilterLabels.push(normalizedTypeMap.get(cb.value)); 
       });
       if (activeFilterLabels.length > 0) {
@@ -547,7 +653,7 @@ function initializeApp() {
       analysis_level, 
       final_r2_percent,
       analysis_message,
-      activeFilterDisplay // Pass the filter display string
+      activeFilterDisplay
     );
   });
   
@@ -598,7 +704,7 @@ function initializeApp() {
   function findOutlierByResidual(x_prime_values, y_values, x_values, m, c) {
     let max_residual_sq = -1;
     let outlier_index = -1;
-
+    
     for (let i = 0; i < x_values.length; i++) {
       const n_i = x_prime_values[i];
       const y_i = y_values[i];
@@ -619,7 +725,7 @@ function initializeApp() {
   }
 
   
-  // --- 5. Helper Functions (UPDATED) ---
+  // --- 5. Helper Functions (No changes here) ---
   
   function showError(message) {
     errorText.innerHTML = message; 
@@ -632,7 +738,6 @@ function initializeApp() {
     
     resultText.textContent = result;
     
-    // Show the Title Type(s) in the result
     resultTitleType.textContent = activeFilterType;
     
     const c_string = c >= 0 ? `+ ${c.toFixed(2)}` : `- ${Math.abs(c).toFixed(2)}`;
@@ -659,7 +764,7 @@ function initializeApp() {
   
   // --- Initialize UI ---
   // Clear the container first, *then* add the 2 blank points
-  clearDataPoints();
+  clearDataPoints(true); // Full clear on startup
   createBlankDataPoint();
   createBlankDataPoint();
   

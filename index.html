@@ -3,7 +3,7 @@
 
   <head>
     <meta charset="UTF-8">
-    <title>TITLE NUMBER GENERATOR (A7)</title>
+    <title>TITLE NUMBER GENERATOR V8.2</title>
     <link rel="stylesheet" href="./style.css">
 
   </head>
@@ -32,6 +32,17 @@
     <div class="form-section">
       <h2>Step 2: Define the Pattern</h2>
       
+      <div id="sort-container" class="form-section hidden">
+        <label for="sort-select">Sort by:</label>
+        <select id="sort-select" class="type-select-dropdown">
+          <option value="default">Default (Upload Order)</option>
+          <option value="house">House No. (Asc)</option>
+          <option value="title">Title No. (Asc)</option>
+          <option value="date_latest">Date (Latest)</option>
+          <option value="date_oldest">Date (Oldest)</option>
+        </select>
+      </div>
+
       <div id="type-selector-container" class="form-section hidden">
         <label>Filter by Title Type:</label>
         <div id="type-selector-checkboxes">
@@ -63,7 +74,9 @@
 
     <h2>House Number: <span class="target-house-display">...</span><br>Calculated Title Number:</h2>
     <p id="result-text"></p>
-    <p id="result-title-type"></p> <div id="formula-details">
+    <p id="result-title-type"></p>
+    
+    <div id="formula-details">
       <h3>Analysis</h3>
       <span id="formula-text"></span>
     </div>
